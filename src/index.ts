@@ -121,3 +121,11 @@ client.login(config.discord.token).catch((error) => {
   console.error('❌ Failed to login:', error);
   process.exit(1);
 });
+
+process.on("uncaughtException", (error: Error) => {
+  console.error("🚨 Uncaught Exception: An error occurred!", error);
+});
+
+process.on("unhandledRejection", (reason: unknown, promise: Promise<unknown>) => {
+  console.warn("⚠️ Unhandled Rejection at:", promise, "reason:", reason);
+});
