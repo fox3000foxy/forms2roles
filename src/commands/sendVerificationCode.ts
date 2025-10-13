@@ -69,7 +69,10 @@ const ping: Command = {
                         const userId = interaction.user.id;
                         let user = users.find(u => u.id === userId);
                         if (!user) {
-                            const userToPush = interaction.user;
+                            const userToPush = {
+                                id: userId,
+                                email
+                            };
                             users.push(userToPush as LLJTUser);
                             user = userToPush as LLJTUser;
                         }

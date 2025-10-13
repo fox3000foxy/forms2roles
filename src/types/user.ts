@@ -1,5 +1,4 @@
-import { User } from "discord.js"
-
-export interface LLJTUser extends User {
-    email?: string;
+export interface LLJTUser  {
+    id: string;
+    email: string;
 }
