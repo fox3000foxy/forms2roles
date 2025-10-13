@@ -1,4 +1,5 @@
 import { Lesson } from "../types/lesson";
+import { LLJTUser } from "../types/user";
 import { readJson } from "../utils/databaseUtils";
 import fetchGoogleSheet from "../utils/fetchGoogleSheet";
 
@@ -9,24 +10,24 @@ export const daemon = {
     async execute() {
         console.log("Running verifyGraduations daemon...");
         const lessons: Lesson[] = await readJson<Lesson[]>("./databases/lessons.json");
-        const users = await readJson("./databases/users.json") as Array<{id: string, email: string}>;
+        const users: LLJTUser[] = await readJson<LLJTUser[]>("./databases/users.json");
 
         for (const lesson of lessons) {
-            if(!lesson.csv) {
-                console.warn(`No CSV found for lesson ${lesson.lesson}, skipping...`);
+            if(!lesson.id) {
+                console.warn(`No CSV found for lesson ${lesson.label}, skipping...`);
                 continue;
             }
             try {
-                const sheetData = await fetchGoogleSheet(lesson.csv);
+                const sheetData = await fetchGoogleSheet(lesson.id);
                 if (!sheetData || sheetData.length === 0) {
-                    console.warn(`No data found in sheet for lesson ${lesson.lesson}`);
+                    console.warn(`No data found in sheet for lesson ${lesson.id}`);
                     continue;
                 }
-                console.log(`Fetched ${sheetData.length} rows for lesson ${lesson.lesson}`);
+                console.log(`Fetched ${sheetData.length} rows for lesson ${lesson.id}`);
                 console.log(sheetData); // Log the first row to inspect its structure
             }
             catch (error) {
-                console.error(`Error fetching sheet for lesson ${lesson.lesson}:`, error);
+                console.error(`Error fetching sheet for lesson ${lesson.id}:`, error);
                 continue;
             }
         }
