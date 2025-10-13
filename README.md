@@ -10,6 +10,7 @@ A modern Discord bot template built with TypeScript and Discord.js v14, featurin
 - **Environment Configuration**: Secure environment variable management
 - **Hot Reload**: Development server with automatic restarts
 - **Example Commands**: Pre-built commands to get you started
+- **Email Integration**: Nodemailer with OVH SSL support
 - **Error Handling**: Comprehensive error handling and logging
 - **Modern ES2022**: Latest JavaScript features and syntax
 
@@ -26,11 +27,20 @@ A modern Discord bot template built with TypeScript and Discord.js v14, featurin
    ```
 
 3. **Configure your bot:**
-   Edit `.env` file with your Discord bot credentials:
+   Edit `.env` file with your Discord bot credentials and email settings:
    ```env
+   # Discord Configuration
    DISCORD_TOKEN=your_bot_token_here
    DISCORD_CLIENT_ID=your_client_id_here
    DISCORD_GUILD_ID=your_guild_id_here # Optional, for faster command registration during development
+   
+   # Email Configuration (OVH)
+   EMAIL_HOST=ssl0.ovh.net
+   EMAIL_PORT=465
+   EMAIL_SECURE=true
+   EMAIL_USER=your_email@yourdomain.com
+   EMAIL_PASSWORD=your_email_password_here
+   EMAIL_FROM="Your Name <your_email@yourdomain.com>"
    ```
 
 ## 🤖 Getting Discord Bot Credentials
@@ -73,8 +83,12 @@ src/
 │   └── commandHandler.ts
 ├── types/             # TypeScript type definitions
 │   └── command.ts
+├── utils/             # Utility functions
+│   ├── sendEmail.ts   # Email functionality with OVH SSL
+│   └── fetchGoogleSheet.ts
 ├── config.ts          # Configuration management
-└── index.ts           # Main bot file
+├── index.ts           # Main bot file
+└── emailTest.ts       # Email testing utilities
 ```
 
 ## ➕ Adding New Commands
@@ -101,7 +115,54 @@ export default myCommand;
 
 3. The command will be automatically loaded and registered!
 
-## 🔧 Available Commands
+## � Email Integration
+
+The project includes a robust email utility using Nodemailer with OVH SSL configuration:
+
+### Usage Examples
+
+```typescript
+import { sendEmail, sendSimpleEmail, sendHtmlEmail } from './utils/sendEmail';
+
+// Simple text email
+await sendSimpleEmail(
+  'recipient@example.com',
+  'Subject',
+  'Your message here'
+);
+
+// HTML email with fallback
+await sendHtmlEmail(
+  'recipient@example.com',
+  'HTML Subject',
+  '<h1>Hello!</h1><p>HTML content</p>',
+  'Plain text fallback'
+);
+
+// Advanced email with multiple recipients
+await sendEmail({
+  to: ['user1@example.com', 'user2@example.com'],
+  cc: 'manager@example.com',
+  subject: 'Advanced Email',
+  html: '<p>Your HTML content</p>',
+  text: 'Fallback text',
+  attachments: [
+    {
+      filename: 'document.pdf',
+      path: '/path/to/document.pdf'
+    }
+  ]
+});
+```
+
+### Testing Email Functionality
+
+Run the email test suite:
+```bash
+npm run dev-test && node dist/emailTest.js
+```
+
+## �🔧 Available Commands
 
 - `/ping` - Shows bot latency and websocket heartbeat
 - `/info` - Displays bot information and statistics
@@ -122,6 +183,12 @@ export default myCommand;
 | `DISCORD_TOKEN` | Your bot's token | ✅ |
 | `DISCORD_CLIENT_ID` | Your application's client ID | ✅ |
 | `DISCORD_GUILD_ID` | Guild ID for faster command registration | ❌ |
+| `EMAIL_HOST` | SMTP server hostname (default: ssl0.ovh.net) | ✅ |
+| `EMAIL_PORT` | SMTP server port (default: 465) | ✅ |
+| `EMAIL_SECURE` | Use SSL/TLS (default: true) | ✅ |
+| `EMAIL_USER` | Your email address | ✅ |
+| `EMAIL_PASSWORD` | Your email password | ✅ |
+| `EMAIL_FROM` | From address with display name | ✅ |
 | `NODE_ENV` | Environment mode (development/production) | ❌ |
 
 ## 🚀 Deployment
