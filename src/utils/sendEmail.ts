@@ -1,6 +1,7 @@
-
 import nodemailer from 'nodemailer';
 import { config } from '../config';
+import ejs from 'ejs';
+import path from 'path';
 
 export interface EmailOptions {
     to: string | string[];
@@ -109,4 +110,30 @@ export const sendEmailWithAttachments = async (
         text: message,
         attachments,
     });
+};
+
+// Helper function for sending emails with EJS templates
+export const sendTemplateEmail = async (
+    to: string | string[],
+    subject: string,
+    templateName: string,
+    templateData: Record<string, any> = {}
+): Promise<void> => {
+    try {
+        // Construct template path
+        const templatePath = path.join(process.cwd(), 'mails', `${templateName}.ejs`);
+        
+        // Render the EJS template
+        const html = await ejs.renderFile(templatePath, templateData);
+        
+        // Send the email with rendered HTML
+        return sendEmail({
+            to,
+            subject,
+            html,
+        });
+    } catch (error) {
+        console.error('Failed to render template or send email:', error);
+        throw new Error(`Failed to send template email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
 };

@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ModalBuilder } from 'discord.js';
 import { Command } from '../types/command';
 import { config } from '../config';
-import { sendSimpleEmail } from '../utils/sendEmail';
+import { sendTemplateEmail } from '../utils/sendEmail';
 import { readJson, writeJson } from '../utils/databaseUtils';
 import { LLJTUser } from '../types/user';
 
@@ -34,10 +34,15 @@ const ping: Command = {
             return 100000 + (hash % 900000);
         }
         const verificationCode = seededCode(email + config.hash);
-        sendSimpleEmail(
+        
+        sendTemplateEmail(
             email,
-            'Your verification code',
-            `Your verification code is: ${verificationCode}`
+            'Your Verification Code',
+            'verificationCode',
+            {
+                username: interaction.user.displayName || interaction.user.username,
+                verificationCode: verificationCode.toString()
+            }
         ).then(() => {
             // Create a modal to verify the code
             const { TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
