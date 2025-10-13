@@ -84,7 +84,7 @@ export const daemon = {
                     try {
                         const role = guild.roles.cache.get(entry.role);
                         await member.roles.add(role!);
-                        const chatChannel = guild.channels.cache.get("1427259866409467916");
+                        const chatChannel = guild.channels.cache.get("1427338649372201000");
                         if (chatChannel && chatChannel.isTextBased()) {
                             await chatChannel.send({
                                 content: `🎉 Congratulations <@${entry.userId}> for completing the graduation ${entry.lesson} and earning the role <@&${entry.role}>!`,
