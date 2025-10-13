@@ -29,7 +29,7 @@ const hello: Command = {
   async execute(interaction: ChatInputCommandInteraction) {
     const targetUser = interaction.options.getUser('user') || interaction.user;
     const style = interaction.options.getString('style') || 'random';
-    
+
     const greetings = {
       morning: `Ohayo gozaimasu, ${targetUser}-san! 🌅`,
       afternoon: `Konnichiwa, ${targetUser}-san! ☀️`,
@@ -37,7 +37,7 @@ const hello: Command = {
       first: `Hajimemashite, ${targetUser}-san! Douzo yoroshiku onegaishimasu! 🙇‍♂️`,
       casual: `Genki desu ka, ${targetUser}-san? 😊`,
     };
-    
+
     let greeting: string;
     if (style === 'random') {
       const randomGreetings = [

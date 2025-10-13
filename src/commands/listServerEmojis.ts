@@ -20,7 +20,7 @@ const ping: Command = {
     const roleGroups: Map<string, string[]> = new Map();
 
     guild.emojis.cache.forEach(emoji => {
-      const emojiDisplay = `${emoji} \`${emoji.name}\``;
+      const emojiDisplay = `${emoji}`;
       
       if (!emoji.roles || emoji.roles.cache.size === 0) {
         publicEmojis.push(emojiDisplay);

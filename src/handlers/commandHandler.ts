@@ -5,13 +5,13 @@ import { Command } from '../types/command';
 
 export async function loadCommands(client: Client) {
   const commandsPath = join(__dirname, '../commands');
-  
+
   try {
     const commandFiles = readdirSync(commandsPath).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
 
     for (const file of commandFiles) {
       const filePath = join(commandsPath, file);
-      
+
       try {
         const commandModule = await import(filePath);
         const command: Command = commandModule.default || commandModule;

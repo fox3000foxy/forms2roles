@@ -1,4 +1,4 @@
-import { sendEmail, sendSimpleEmail, sendHtmlEmail } from './utils/sendEmail';
+import { sendEmail, sendSimpleEmail, sendHtmlEmail } from '../utils/sendEmail';
 
 async function testEmailFunctions() {
   try {

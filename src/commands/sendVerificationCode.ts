@@ -34,7 +34,7 @@ const ping: Command = {
             return 100000 + (hash % 900000);
         }
         const verificationCode = seededCode(email + config.hash);
-        
+
         sendTemplateEmail(
             email,
             'Your Verification Code',

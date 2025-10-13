@@ -29,8 +29,8 @@ loadCommands(client);
 // When the client is ready, run this code (only once)
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Ready! Logged in as ${readyClient.user.tag}`);
-  // await registerCommands();
-  
+  await registerCommands();
+
   // Démarrer les daemons seulement après que le client soit prêt
   const daemonsList = fs.readdirSync(__dirname + '/daemons').filter(file => file.endsWith('.ts') || file.endsWith('.js'));
   for (const file of daemonsList) {

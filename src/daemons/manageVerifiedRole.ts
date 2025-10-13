@@ -1,6 +1,6 @@
 const VERIFIED_ROLE_ID = "1427262130154901614";
 import { Client } from "discord.js";
-import { readJson} from "../utils/databaseUtils";
+import { readJson } from "../utils/databaseUtils";
 import { config } from "../config";
 import { LLJTUser } from "../types/user";
 

@@ -1,4 +1,4 @@
-export interface LLJTUser  {
+export interface LLJTUser {
     id: string;
     email: string;
 }
