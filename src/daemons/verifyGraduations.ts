@@ -14,10 +14,11 @@ export const daemon = {
         const lessons: Lesson[] = await readJson<Lesson[]>("./databases/lessons.json");
         const users: LLJTUser[] = await readJson<LLJTUser[]>("./databases/users.json");
 
-        let rolesToAdd: { ratio: number, role: string, userId: string, lesson: string }[] = [];
+        let rolesToAdd: { ratio: number, role: string, userId: string, lesson: string, lessonIndex: number }[] = [];
 
-        for (const lesson of lessons) {
-            if (!lesson.id) {
+        for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex++) {
+            const lesson = lessons[lessonIndex];
+            if (!lesson || !lesson.id) {
                 // console.warn(`No CSV found for lesson ${lesson.label}, skipping...`);
                 continue;
             }
@@ -35,7 +36,8 @@ export const daemon = {
                             ratio: row.ratio as number,
                             role: lesson.role_id as string,
                             lesson: lesson.label,
-                            userId: user.id
+                            userId: user.id,
+                            lessonIndex: lessonIndex
                         }
                     }
                     return null;
@@ -49,7 +51,7 @@ export const daemon = {
         }
 
         // Remove duplicates, keep the highest ratio for each user-role pair
-        const uniqueRolesToAdd: { ratio: number, role: string, userId: string, lesson: string; }[] = [];
+        const uniqueRolesToAdd: { ratio: number, role: string, userId: string, lesson: string, lessonIndex: number }[] = [];
         const seen = new Map<string, number>(); // key: `${userId}-${role}`, value: ratio
         for (const entry of rolesToAdd) {
             const key = `${entry.userId}-${entry.role}`;
@@ -65,21 +67,40 @@ export const daemon = {
             }
         }
 
+        // Helper function to check if user has all previous roles
+        const hasAllPreviousRoles = (member: any, lessonIndex: number): boolean => {
+            if (lessonIndex === 0) return true; // First lesson, no prerequisites
+            
+            for (let i = 0; i < lessonIndex; i++) {
+                const previousLesson = lessons[i];
+                if (!previousLesson || !previousLesson.role_id) continue;
+                if (!member.roles.cache.has(previousLesson.role_id)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        const guild = client.guilds.cache.get(config.discord.guildId || "");
+        if (!guild) {
+            console.error("Guild not found");
+            return;
+        }
+
         // console.log(uniqueRolesToAdd)
 
         // Adds the role
         for (const entry of uniqueRolesToAdd) {
-            const guild = client.guilds.cache.get(config.discord.guildId || "");
-            if (!guild) {
-                console.error("Guild not found");
-                return;
-            }
             const member = await guild.members.fetch(entry.userId).catch(() => null);
             if (!member) {
                 console.warn(`Member with ID ${entry.userId} not found in guild`);
                 continue;
             }
-            if (entry.ratio >= 0.8) {
+
+            // Check if user has prerequisites
+            const hasPrerequisites = hasAllPreviousRoles(member, entry.lessonIndex);
+
+            if (entry.ratio >= 0.8 && hasPrerequisites) {
                 if (!member.roles.cache.has(entry.role)) {
                     try {
                         const role = guild.roles.cache.get(entry.role);
@@ -97,9 +118,13 @@ export const daemon = {
                     }
                 }
             } else {
+                // Remove role if ratio is too low OR if prerequisites are not met
                 if (member.roles.cache.has(entry.role)) {
                     try {
                         await member.roles.remove(entry.role);
+                        if (!hasPrerequisites) {
+                            console.log(`Removed role ${entry.role} from user ${member.user.tag} - missing prerequisites`);
+                        }
                         // console.log(`Removed role ${entry.role} from user ${member.user.tag}`);
                     } catch (error) {
                         console.error(`Failed to remove role ${entry.role} from user ${member.user.tag}:`, error);

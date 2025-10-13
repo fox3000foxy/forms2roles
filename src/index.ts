@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Events, REST, Routes, Collection } from 'discord.js';
+import { Client, GatewayIntentBits, Events, REST, Routes, Collection, ActivityType } from 'discord.js';
 import { config } from './config';
 import { Command } from './types/command';
 import { loadCommands } from './handlers/commandHandler';
@@ -31,6 +31,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Ready! Logged in as ${readyClient.user.tag}`);
   await registerCommands();
 
+  client.user?.setActivity('Listening people talking in japanese', { type: ActivityType.Listening });
   // Démarrer les daemons seulement après que le client soit prêt
   const daemonsList = fs.readdirSync(__dirname + '/daemons').filter(file => file.endsWith('.ts') || file.endsWith('.js'));
   for (const file of daemonsList) {
