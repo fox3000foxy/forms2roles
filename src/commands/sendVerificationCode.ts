@@ -2,6 +2,8 @@ import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ModalBu
 import { Command } from '../types/command';
 import { config } from '../config';
 import { sendSimpleEmail } from '../utils/sendEmail';
+import { readJson, writeJson } from '../utils/databaseUtils';
+import { LLJTUser } from '../types/user';
 
 const ping: Command = {
     data: new SlashCommandBuilder()
@@ -63,6 +65,16 @@ const ping: Command = {
                 if (modalInteraction.customId === `verify_code_${email}`) {
                     const userCode = modalInteraction.fields.getTextInputValue('verification_code');
                     if (userCode === verificationCode.toString()) {
+                        const users: LLJTUser[] = await readJson<LLJTUser[]>('./databases/users.json');
+                        const userId = interaction.user.id;
+                        let user = users.find(u => u.id === userId);
+                        if (!user) {
+                            const userToPush = interaction.user;
+                            users.push(userToPush as LLJTUser);
+                            user = userToPush as LLJTUser;
+                        }
+                        user.email = email;
+                        writeJson('./databases/users.json', users);
                         await modalInteraction.reply({ content: '✅ Verification successful! This email is now linked to your account.', ephemeral: true });
                     } else {
                         await modalInteraction.reply({ content: '❌ Incorrect code. Please try again.', ephemeral: true });
