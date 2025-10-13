@@ -2,6 +2,7 @@ import { Client, GatewayIntentBits, Events, REST, Routes, Collection } from 'dis
 import { config } from './config';
 import { Command } from './types/command';
 import { loadCommands } from './handlers/commandHandler';
+import fs from 'fs';
 
 // Create a new client instance
 const client = new Client({
@@ -28,9 +29,23 @@ loadCommands(client);
 // When the client is ready, run this code (only once)
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Ready! Logged in as ${readyClient.user.tag}`);
-  
-  // Register slash commands
   await registerCommands();
+  
+  // Démarrer les daemons seulement après que le client soit prêt
+  const daemonsList = fs.readdirSync(__dirname + '/daemons').filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+  for (const file of daemonsList) {
+    import(__dirname + `/daemons/${file}`).then(({ daemon }) => {
+      if (daemon && typeof daemon.execute === 'function' && typeof daemon.interval === 'number') {
+        console.log(`🛠️ Starting daemon: ${daemon.name}`)
+        // Initial run
+        daemon.execute(client)
+        // Set interval
+        setInterval(() => daemon.execute(client), daemon.interval);
+      }
+    }).catch(error => {
+      console.error(`❌ Failed to load daemon ${file}:`, error);
+    });
+  }
 });
 
 // Handle slash command interactions
@@ -48,9 +63,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await command.execute(interaction);
   } catch (error) {
     console.error(`❌ Error executing ${interaction.commandName}:`, error);
-    
+
     const errorMessage = 'There was an error while executing this command!';
-    
+
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({ content: errorMessage, ephemeral: true });
     } else {
@@ -65,7 +80,7 @@ async function registerCommands() {
     console.log('🔄 Started refreshing application (/) commands.');
 
     const rest = new REST().setToken(config.discord.token);
-    
+
     const commands = Array.from(client.commands.values()).map(command => command.data.toJSON());
 
     if (config.discord.guildId) {
