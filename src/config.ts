@@ -17,6 +17,7 @@ export const config = {
     password: process.env.EMAIL_PASSWORD as string,
     from: process.env.EMAIL_FROM as string,
   },
+  hash: process.env.HASH || 'default_salt',
   environment: process.env.NODE_ENV || 'development',
 };
 
