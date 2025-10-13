@@ -17,5 +17,43 @@ export default async function fetchGoogleSheet(id: string) {
         }
         return obj;
     });
-    return json;
+
+    return json.map(row => {
+        /** 
+         * Row exemple :
+         *   {
+         *      '"Horodateur"': '"dd/mm/aaa hh:mm:ss"',
+         *      '"Score"': '"x / y"',
+         *      '"Adresse e-mail"': '"address@email.com"',
+         *      ...
+         *  }
+         * to
+         * {
+         *      "email": "address@email.com"
+         *      "totalPoints": "y"
+         *      "score": "x"
+         *      "timestamp": "dd/mm/aaa hh:mm:ss"
+         *      "ratio": "x/y"
+         * }
+        */
+        const cleanedRow: Record<string, string | number> = {}
+        for (const key in row) {
+            const cleanedKey = key.replace(/"/g, '').toLowerCase();
+            let cleanedValue = row[key] ? row[key].replace(/"/g, '') : '';
+            if (cleanedKey.indexOf('mail') !== -1) {
+                cleanedRow['email'] = cleanedValue;
+            }
+            else if (cleanedKey === 'score') {
+                const [score, totalPoints]: number[] = cleanedValue.split('/').map(s => parseInt(s.trim())) as number[];
+                if(!score || !totalPoints) {
+                    continue;
+                }
+                cleanedRow['score'] = score ?? '';
+                cleanedRow['totalPoints'] = totalPoints ?? '';
+                cleanedRow['ratio'] = score / totalPoints;
+                cleanedRow['lessonId'] = id;
+            }
+        }
+        return cleanedRow;
+    });
 }
