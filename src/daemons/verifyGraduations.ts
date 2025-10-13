@@ -14,7 +14,7 @@ export const daemon = {
         const lessons: Lesson[] = await readJson<Lesson[]>("./databases/lessons.json");
         const users: LLJTUser[] = await readJson<LLJTUser[]>("./databases/users.json");
 
-        let rolesToAdd: { ratio: number, role: string, userId: string }[] = [];
+        let rolesToAdd: { ratio: number, role: string, userId: string, lesson: string }[] = [];
 
         for (const lesson of lessons) {
             if (!lesson.id) {
@@ -34,6 +34,7 @@ export const daemon = {
                         return {
                             ratio: row.ratio as number,
                             role: lesson.role_id as string,
+                            lesson: lesson.label,
                             userId: user.id
                         }
                     }
@@ -48,7 +49,7 @@ export const daemon = {
         }
 
         // Remove duplicates, keep the highest ratio for each user-role pair
-        const uniqueRolesToAdd: { ratio: number, role: string, userId: string }[] = [];
+        const uniqueRolesToAdd: { ratio: number, role: string, userId: string, lesson: string; }[] = [];
         const seen = new Map<string, number>(); // key: `${userId}-${role}`, value: ratio
         for (const entry of rolesToAdd) {
             const key = `${entry.userId}-${entry.role}`;
@@ -83,6 +84,13 @@ export const daemon = {
                     try {
                         const role = guild.roles.cache.get(entry.role);
                         await member.roles.add(role!);
+                        const chatChannel = guild.channels.cache.get("1427259866409467916");
+                        if (chatChannel && chatChannel.isTextBased()) {
+                            await chatChannel.send({
+                                content: `🎉 Congratulations <@${entry.userId}> for completing the graduation ${entry.lesson} and earning the role <@&${entry.role}>!`,
+                                allowedMentions: { users: [], roles: [] }
+                            });
+                        }
                         // console.log(`Added role ${entry.role} to user ${member.user.tag}`);
                     } catch (error) {
                         console.error(`Failed to add role ${entry.role} to user ${member.user.tag}:`, error);
