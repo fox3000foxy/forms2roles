@@ -6,6 +6,7 @@
 "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev-test": "ts-node-dev --respawn --transpile-only src/test.ts",
     "build": "tsc",
     "watch": "tsc --watch",
     "clean": "rimraf dist",
