@@ -3,9 +3,26 @@ import { Command } from '../types/command';
 import Kuroshiro from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
 import fetch from 'node-fetch';
-import FormData from 'form-data';
 import googleTTS from 'google-tts-api';
 import { config } from '../config';
+
+// Define types for API responses
+interface VoiceVoxResponse {
+  success: boolean;
+  audioStatusUrl: string;
+  mp3DownloadUrl: string;
+}
+
+interface VoiceVoxStatusResponse {
+  isAudioReady: boolean;
+}
+
+interface DiscordAttachmentResponse {
+  attachments: Array<{
+    upload_url: string;
+    upload_filename: string;
+  }>;
+}
 
 // Instance de Kuroshiro pour la conversion des kanjis
 let kuroshiro: any = null;
@@ -121,7 +138,7 @@ async function generateTTS(text: string): Promise<Buffer | null> {
     console.log('Trying VOICEVOX API first...');
 
     // Étape 1: Demander la synthèse vocale (format form-data comme dans la doc)
-    const formData = new FormData();
+    const formData = new URLSearchParams();
     formData.append('text', text.replace(' ', ''));
     formData.append('speaker', '3');
 
@@ -134,6 +151,9 @@ async function generateTTS(text: string): Promise<Buffer | null> {
     try {
       response = await fetch('https://api.tts.quest/v3/voicevox/synthesis', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
         body: formData,
         signal: controller.signal,
       });
@@ -150,7 +170,7 @@ async function generateTTS(text: string): Promise<Buffer | null> {
       return await generateGoogleTTS(text);
     }
 
-    const data = await response.json();
+    const data = await response.json() as VoiceVoxResponse;
     console.log('TTS API response data:', data);
 
     if (!data.success) {
@@ -176,7 +196,7 @@ async function generateTTS(text: string): Promise<Buffer | null> {
 
       const statusResponse = await fetch(statusUrl);
       if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
+        const statusData = await statusResponse.json() as VoiceVoxStatusResponse;
         console.log('Status data:', statusData);
         isReady = statusData.isAudioReady;
       } else {
@@ -239,7 +259,10 @@ async function uploadToDiscord(audioBuffer: Buffer, channelId: string, isMP3: bo
     throw new Error(`Attachment request failed: ${attachmentResponse.status} - ${errorText}`);
   }
 
-  const attachmentData = await attachmentResponse.json();
+  const attachmentData = await attachmentResponse.json() as DiscordAttachmentResponse;
+  if (!attachmentData.attachments || !attachmentData.attachments[0]) {
+    throw new Error('No attachment data returned from Discord API.');
+  }
   const uploadUrl = attachmentData.attachments[0].upload_url;
   const uploadFilename = attachmentData.attachments[0].upload_filename;
 
