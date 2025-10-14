@@ -29,7 +29,7 @@ loadCommands(client);
 // When the client is ready, run this code (only once)
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Ready! Logged in as ${readyClient.user.tag}`);
-  await registerCommands();
+  // await registerCommands();
 
   client.user?.setActivity('Listening people talking in japanese', { type: ActivityType.Listening });
   // Démarrer les daemons seulement après que le client soit prêt
