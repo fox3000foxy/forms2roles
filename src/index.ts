@@ -89,15 +89,6 @@ async function registerCommands() {
       integration_types: [0, 1], // 0 = Guild Install, 1 = User Install
       contexts: [0, 1, 2], // 0 = Guild, 1 = Bot DM, 2 = Private Channel
     }));
-
-    if (config.discord.guildId) {
-      // Register guild-specific commands (faster for development)
-      await rest.put(
-        Routes.applicationGuildCommands(config.discord.clientId, config.discord.guildId),
-        { body: commands }
-      );
-      console.log(`✅ Successfully reloaded ${commands.length} guild (/) commands.`);
-    }
     
     // Always register global commands for User Install support
     // User Install commands must be registered globally
