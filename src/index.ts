@@ -33,7 +33,9 @@ client.once(Events.ClientReady, async (readyClient) => {
 
   client.user?.setActivity('Listening people talking in japanese', { type: ActivityType.Listening });
   // Démarrer les daemons seulement après que le client soit prêt
-  const daemonsList = fs.readdirSync(__dirname + '/daemons').filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+  const daemonsList = fs.readdirSync(__dirname + '/daemons').filter(file =>
+    (file.endsWith('.ts') || file.endsWith('.js')) && !file.endsWith('.d.ts')
+  );
   for (const file of daemonsList) {
     import(__dirname + `/daemons/${file}`).then(({ daemon }) => {
       if (daemon && typeof daemon.execute === 'function' && typeof daemon.interval === 'number') {
