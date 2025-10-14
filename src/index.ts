@@ -29,7 +29,7 @@ loadCommands(client);
 // When the client is ready, run this code (only once)
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Ready! Logged in as ${readyClient.user.tag}`);
-  // await registerCommands();
+  await registerCommands(); // Décommentez cette ligne pour enregistrer les commandes
 
   client.user?.setActivity('Listening people talking in japanese', { type: ActivityType.Listening });
   // Démarrer les daemons seulement après que le client soit prêt
@@ -84,7 +84,11 @@ async function registerCommands() {
 
     const rest = new REST().setToken(config.discord.token);
 
-    const commands = Array.from(client.commands.values()).map(command => command.data.toJSON());
+    const commands = Array.from(client.commands.values()).map(command => ({
+      ...command.data.toJSON(),
+      integration_types: [0, 1], // 0 = Guild Install, 1 = User Install
+      contexts: [0, 1, 2], // 0 = Guild, 1 = Bot DM, 2 = Private Channel
+    }));
 
     if (config.discord.guildId) {
       // Register guild-specific commands (faster for development)
@@ -93,14 +97,16 @@ async function registerCommands() {
         { body: commands }
       );
       console.log(`✅ Successfully reloaded ${commands.length} guild (/) commands.`);
-    } else {
-      // Register global commands (takes up to 1 hour to update)
-      await rest.put(
-        Routes.applicationCommands(config.discord.clientId),
-        { body: commands }
-      );
-      console.log(`✅ Successfully reloaded ${commands.length} global (/) commands.`);
     }
+    
+    // Always register global commands for User Install support
+    // User Install commands must be registered globally
+    await rest.put(
+      Routes.applicationCommands(config.discord.clientId),
+      { body: commands }
+    );
+    console.log(`✅ Successfully reloaded ${commands.length} global (/) commands with User Install support.`);
+    
   } catch (error) {
     console.error('❌ Error registering commands:', error);
   }

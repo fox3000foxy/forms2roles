@@ -18,6 +18,7 @@ export async function loadCommands(client: Client) {
         const commandModule = await import(filePath);
         const command: Command = commandModule.default || commandModule;
 
+        
         if ('data' in command && 'execute' in command) {
           client.commands.set(command.data.name, command);
           console.log(`✅ Loaded command: ${command.data.name}`);
