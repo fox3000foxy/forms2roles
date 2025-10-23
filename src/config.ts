@@ -34,10 +34,6 @@ if (!config.email.user) {
   throw new Error('EMAIL_USER is required');
 }
 
-if (!config.email.password) {
-  throw new Error('EMAIL_PASSWORD is required');
-}
-
 if (!config.email.from) {
   throw new Error('EMAIL_FROM is required');
 }
