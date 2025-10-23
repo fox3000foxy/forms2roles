@@ -1,6 +1,5 @@
-import nodemailer from 'nodemailer';
-import { config } from '../config';
 import ejs from 'ejs';
+import nodemailer from 'nodemailer';
 import path from 'path';
 
 export interface EmailOptions {
@@ -21,21 +20,17 @@ export interface EmailOptions {
 // Create transporter with OVH SSL configuration
 const createTransporter = () => {
     return nodemailer.createTransport({
-        host: config.email.host,
-        port: config.email.port,
-        secure: config.email.secure, // true for 465, false for other ports
+        service: "gmail",
         auth: {
-            user: config.email.user,
-            pass: config.email.password,
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
         },
         tls: {
             // Do not fail on invalid certificates
             rejectUnauthorized: false,
         },
-        debug: config.environment === 'development',
-        logger: config.environment === 'development',
     });
-};
+}; 
 
 export const sendEmail = async (options: EmailOptions): Promise<void> => {
     try {
@@ -46,7 +41,7 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
         console.log('SMTP server is ready to take our messages');
 
         const mailOptions = {
-            from: config.email.from,
+            from: process.env.EMAIL_FROM,
             to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
             subject: options.subject,
             text: options.text,
